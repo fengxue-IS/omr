@@ -21,7 +21,6 @@
  *******************************************************************************/
 
 #include <string.h>
-#include <sys/mman.h>
 
 #include "omrcomp.h"
 #include "omrport.h"
@@ -160,27 +159,28 @@ MM_VirtualMemory::reserveMemory(J9PortVmemParams* params)
 		addressToReturn = (void*)MM_Math::roundToCeiling(_heapAlignment, (uintptr_t)_baseAddress);
 	}
 
-#if defined (LINUX) && defined (OMR_GC_MODRON_SCAVENGER)
+	return addressToReturn;
+}
+
+void
+MM_VirtualMemory::adviseHugepage()
+{
+#if defined(LINUX)
+	OMRPORT_ACCESS_FROM_OMRVM(_extensions->getOmrVM());
 	if (omrvmem_supported_page_sizes()[0] == _pageSize) {
 		if ((_extensions->enableSplitHeap)) {
 			if (MM_GCExtensionsBase::HEAP_INITIALIZATION_SPLIT_HEAP_NURSERY == _extensions->splitHeapSection) {
-				/* TODO - memory advise should be a port library function
-				* omrvmem_advise_hugepage(_baseAddress, _reserveSize);
-				*/
-				madvise(_baseAddress, _reserveSize, MADV_HUGEPAGE);
-				printf("madvise called for vmem address %p, size %ld\n", _baseAddress, _reserveSize);
+				omrvmem_advise_hugepage(_baseAddress, _reserveSize);
 			}
 		} else {
 			/* Caculate the start address (theoretical lower bound) of Nursery space */
 			uintptr_t tenureSize = MM_Math::roundToCeiling(_pageSize, _reserveSize - _extensions->maxNewSpaceSize);
 			uintptr_t start_address = (uintptr_t)_baseAddress + tenureSize;
 
-			madvise((void*)start_address, _reserveSize - tenureSize, MADV_HUGEPAGE);
-			printf("madvise called for vmem address %p, size %ld\n", (void*)start_address, _reserveSize - tenureSize);
+			omrvmem_advise_hugepage((void*)start_address, _reserveSize - tenureSize);
 		}
 	}
-#endif /* OMR_GC_MODRON_SCAVENGER */
-	return addressToReturn;
+#endif /* defined(LINUX) */
 }
 
 bool MM_VirtualMemory::freeMemory()

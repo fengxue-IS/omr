@@ -201,6 +201,23 @@ omrvmem_reserve_memory_ex(struct OMRPortLibrary *portLibrary, struct J9PortVmemI
 }
 
 /**
+ * Advise memory to enable use of Transparent HugePages (THP) (Linux Only)
+ * 
+ * Notify kernel that the virtual memory region specified by address and byteAmount should be labelled
+ * with MADV_HUGEPAGE, where the khugepage process could promote to THP when possible.
+ * 
+ * @param[in] portLibrary The port library.
+ * @param[in] address The starting virtual address.
+ * @param[in] byteAmount The amount of bytes after address to map to hugepage.
+ * 
+ */
+void
+omrvmem_advise_hugepage(struct OMRPortLibrary *portLibrary, void* address, uintptr_t byteAmount)
+{
+	return;
+}
+
+/**
  * Get the page size used to back a region of virtual memory.
  *
  * @param[in] portLibrary The port library.

@@ -375,6 +375,12 @@ MM_MemoryManager::createVirtualMemoryForHeap(MM_EnvironmentBase* env, MM_MemoryH
 		}
 	}
 
+#if defined(LINUX)
+	if ((NULL != instance) && (gc_policy_gencon == extensions->configurationOptions._gcPolicy)) {
+		instance->adviseHugepage();
+	}
+#endif /* defined(LINUX) */
+
 #if defined(OMR_VALGRIND_MEMCHECK)
 	//Use handle's Memory Base to refer valgrind memory pool
 	valgrindCreateMempool(extensions, env, (uintptr_t)handle->getMemoryBase());
