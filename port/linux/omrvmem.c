@@ -132,6 +132,7 @@ static void port_numa_interleave_memory(struct OMRPortLibrary *portLibrary, void
 #endif /* OMR_PORT_NUMA_SUPPORT */
 static void update_vmemIdentifier(J9PortVmemIdentifier *identifier, void *address, void *handle, uintptr_t byteAmount, uintptr_t mode, uintptr_t pageSize, uintptr_t pageFlags, uintptr_t allocator, OMRMemCategory *category, int fd);
 static uintptr_t get_hugepages_info(struct OMRPortLibrary *portLibrary, vmem_hugepage_info_t *page_info);
+static uintptr_t get_transparent_hugepage_info(struct OMRPortLibrary *portLibrary);
 static int get_protectionBits(uintptr_t mode);
 
 #if defined(OMR_PORT_NUMA_SUPPORT)
