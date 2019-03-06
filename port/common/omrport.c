@@ -173,6 +173,7 @@ static OMRPortLibrary MasterPortLibraryTable = {
 	omrvmem_reserve_memory, /* vmem_reserve_memory */
 	omrvmem_reserve_memory_ex, /* vmem_reserve_memory_ex */
 	omrvmem_get_contiguous_region_memory, /* vmem_get_contiguous_region_memory */
+	omrvmem_advise_hugepage, /* vmem_advise_hugepage */
 	omrvmem_get_page_size, /* vmem_get_page_size */
 	omrvmem_get_page_flags, /* omrvmem_get_page_flags */
 	omrvmem_supported_page_sizes, /* vmem_supported_page_sizes */

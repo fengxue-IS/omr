@@ -884,6 +884,17 @@ reserveLargePages(struct OMRPortLibrary *portLibrary, struct J9PortVmemIdentifie
 }
 
 uintptr_t
+omrvmem_advise_hugepage(struct OMRPortLibrary *portLibrary, void* address, uintptr_t byteAmount)
+{
+	if (portLibrary->portGlobals->vmemEnableMadvise) {
+		if (0 != madvise(address, byteAmount, MADV_HUGEPAGE)) {
+			return OMRPORT_ERROR_VMEM_OPFAILED;
+		}
+	}
+	return 0;
+}
+
+uintptr_t
 omrvmem_get_page_size(struct OMRPortLibrary *portLibrary, struct J9PortVmemIdentifier *identifier)
 {
 	return identifier->pageSize;
