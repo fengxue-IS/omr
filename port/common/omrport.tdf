@@ -672,6 +672,8 @@ TraceExit=Trc_PRT_sl_open_shared_library_Exit2 Group=sl Overhead=1 Level=10 NoEn
 TraceExit=Trc_PRT_sl_open_shared_library_Exit3 Group=sl Overhead=1 Level=10 NoEnv Template="omrsl_open_shared_library could not allocate buffer of length=%d, result=%d"
 
 TraceEvent=Trc_PRT_sl_open_shared_library_Event2 Group=sl Overhead=1 Level=10 NoEnv Template="omrsl_open_shared_library OS error message: %s"
+TraceEvent=Trc_PRT_sl_open_shared_library_Event3 Group=sl Overhead=1 Level=1 NoEnv Template="omrsl_open_shared_library using legacyName %s"
+TraceEvent=Trc_PRT_sl_open_shared_library_Event4 Group=sl Overhead=1 Level=1 NoEnv Template="omrsl_open_shared_library legacyName Unsupported"
 
 // vmem trace points
 

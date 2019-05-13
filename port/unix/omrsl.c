@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 1991, 2017 IBM Corp. and others
+ * Copyright (c) 1991, 2019 IBM Corp. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -75,6 +75,7 @@
 
 #if defined(OSX)
 #define PLATFORM_DLL_EXTENSION ".dylib"
+#define PLATFORM_DLL_EXTENSION_LEGACY ".jnilib"
 #else /* defined(OSX) */
 #define PLATFORM_DLL_EXTENSION ".so"
 #endif /* defined(OSX) */
@@ -162,35 +163,58 @@ omrsl_open_shared_library(struct OMRPortLibrary *portLibrary, char *name, uintpt
 
 #if defined(LINUX) || defined(OSX)
 	if ((NULL == handle) && !openExec) {
-		/* last ditch, try dir port lib DLL is in */
-		char portLibDir[MAX_STRING_LENGTH];
-		Dl_info libraryInfo;
-		int rc = dladdr((void *)omrsl_open_shared_library, &libraryInfo);
+#if defined(OSX)
+		if (decorate) {
+			/* Retry with .jnilib extension */
+			char leagcyName[MAX_STRING_LENGTH + 1];
+			char *p = strrchr(name, '/');
+			if (NULL != p) {
+				/* the names specifies a path */
+				pathLength = portLibrary->str_printf(portLibrary, leagcyName, (MAX_STRING_LENGTH + 1), "%.*slib%s" PLATFORM_DLL_EXTENSION_LEGACY, (uintptr_t)p + 1 - (uintptr_t)name, name, p + 1);
+			} else {
+				pathLength = portLibrary->str_printf(portLibrary, leagcyName, (MAX_STRING_LENGTH + 1), "lib%s" PLATFORM_DLL_EXTENSION_LEGACY, name);
+			}
+			if (pathLength < MAX_STRING_LENGTH) {
+				Trc_PRT_sl_open_shared_library_Event3(leagcyName);
+				handle = dlopen(leagcyName, lazyOrNow);
+			} else {
+				Trc_PRT_sl_open_shared_library_Event4();
+			}
+		}
 
-		if (0 != rc) {
-			/* find the directory of the port library shared object */
-			char *dirSep = strrchr(libraryInfo.dli_fname, '/');
-			/* retry only if the path will be different than the attempt above */
-			if (NULL != dirSep) {
-				/* +1 so length includes the '/' */
-				pathLength = dirSep - libraryInfo.dli_fname + 1;
-				/* proceed only if buffer size can fit the new concatenated path (+1 for NUL) */
-				if (MAX_STRING_LENGTH < (pathLength + strlen(openName) + 1)) {
-					const char *error = portLibrary->nls_lookup_message(portLibrary,
-								  J9NLS_ERROR | J9NLS_DO_NOT_APPEND_NEWLINE,
-								  J9NLS_PORT_SL_BUFFER_EXCEEDED_ERROR,
-								  "Insufficient buffer memory while attempting to load a shared library");
-					strncpy(errBuf, error, MAX_ERR_BUF_LENGTH);
-					errBuf[MAX_ERR_BUF_LENGTH - 1] = '\0'; /* If NLS message size exceeds buffer length */
-					Trc_PRT_sl_open_shared_library_Exit2(OMRPORT_SL_INVALID);
-					return portLibrary->error_set_last_error_with_message(portLibrary, OMRPORT_SL_INVALID, errBuf);
-				}
-				memcpy(portLibDir, libraryInfo.dli_fname, pathLength);
-				strcpy(portLibDir + pathLength, openName);
-				handle = dlopen(portLibDir, lazyOrNow);
-				if (NULL == handle) {
-					/* rerun the dlopen to get the right error code again */
-					handle = dlopen(openName, lazyOrNow);
+		if (NULL == handle)
+#endif /* defined(OSX) */
+		{
+			/* last ditch, try dir port lib DLL is in */
+			char portLibDir[MAX_STRING_LENGTH];
+			Dl_info libraryInfo;
+			int rc = dladdr((void *)omrsl_open_shared_library, &libraryInfo);
+
+			if (0 != rc) {
+				/* find the directory of the port library shared object */
+				char *dirSep = strrchr(libraryInfo.dli_fname, '/');
+				/* retry only if the path will be different than the attempt above */
+				if (NULL != dirSep) {
+					/* +1 so length includes the '/' */
+					pathLength = dirSep - libraryInfo.dli_fname + 1;
+					/* proceed only if buffer size can fit the new concatenated path (+1 for NUL) */
+					if (MAX_STRING_LENGTH < (pathLength + strlen(openName) + 1)) {
+						const char *error = portLibrary->nls_lookup_message(portLibrary,
+									J9NLS_ERROR | J9NLS_DO_NOT_APPEND_NEWLINE,
+									J9NLS_PORT_SL_BUFFER_EXCEEDED_ERROR,
+									"Insufficient buffer memory while attempting to load a shared library");
+						strncpy(errBuf, error, MAX_ERR_BUF_LENGTH);
+						errBuf[MAX_ERR_BUF_LENGTH - 1] = '\0'; /* If NLS message size exceeds buffer length */
+						Trc_PRT_sl_open_shared_library_Exit2(OMRPORT_SL_INVALID);
+						return portLibrary->error_set_last_error_with_message(portLibrary, OMRPORT_SL_INVALID, errBuf);
+					}
+					memcpy(portLibDir, libraryInfo.dli_fname, pathLength);
+					strcpy(portLibDir + pathLength, openName);
+					handle = dlopen(portLibDir, lazyOrNow);
+					if (NULL == handle) {
+						/* rerun the dlopen to get the right error code again */
+						handle = dlopen(openName, lazyOrNow);
+					}
 				}
 			}
 		}
