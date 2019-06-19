@@ -912,9 +912,12 @@ adviseHugepage(struct OMRPortLibrary *portLibrary, void* address, uintptr_t byte
 		uintptr_t start = (uintptr_t)address;
 		uintptr_t end = (uintptr_t)address + byteAmount;
 
-		/* Align start and end to be page-size aligned */
-		start = start + ((start % PPG_vmem_pageSize[0]) ? (PPG_vmem_pageSize[0] - (start % PPG_vmem_pageSize[0])) : 0);
-		end = end - (end % PPG_vmem_pageSize[0]);
+#define MIN_THP_BLOCK_SIZE ((uintptr_t)2 * 1024 * 1024)
+
+		/* Align start address to be page-size aligned */
+		start = start + ((start % MIN_THP_BLOCK_SIZE) ? (MIN_THP_BLOCK_SIZE - (start % MIN_THP_BLOCK_SIZE)) : 0);
+		end = end - (end % MIN_THP_BLOCK_SIZE);
+
 		if (start < end) {
 			if (0 != madvise((void *)start, end - start, MADV_HUGEPAGE)) {
 				return OMRPORT_ERROR_VMEM_OPFAILED;
