@@ -620,7 +620,7 @@ omrvmem_commit_memory(struct OMRPortLibrary *portLibrary, void *address, uintptr
 				printf("\t\tomrvmem_commit_memory called mprotect, returning %p\n", address);
 				fflush(stdout);
 #endif
-				printf("Commit Memory: %p, size: %lu\n", address, byteAmount);
+//				printf("Commit Memory: %p, size: %lu\n", address, byteAmount);
 				rc = address;
 			} else {
 				Trc_PRT_vmem_omrvmem_commit_memory_mprotect_failure(errno);
@@ -908,20 +908,20 @@ reserveLargePages(struct OMRPortLibrary *portLibrary, struct J9PortVmemIdentifie
 static uintptr_t
 adviseHugepage(struct OMRPortLibrary *portLibrary, void* address, uintptr_t byteAmount)
 {
-		printf("Reserved Memory: %p, size: %lu\n", address, byteAmount);
+//		printf("Reserved Memory: %p, size: %lu\n", address, byteAmount);
 #if defined(MAP_ANON) || defined(MAP_ANONYMOUS)
 	if (portLibrary->portGlobals->vmemEnableMadvise) {
 		uintptr_t start = (uintptr_t)address;
 		uintptr_t end = (uintptr_t)address + byteAmount;
 
-#define MIN_THP_BLOCK_SIZE ((uintptr_t)2 * 1024 * 1024)
+#define MIN_THP_BLOCK_SIZE ((uintptr_t)16 * 1024 * 1024)
 
 		/* Align start address to be page-size aligned */
 		start = start + ((start % MIN_THP_BLOCK_SIZE) ? (MIN_THP_BLOCK_SIZE - (start % MIN_THP_BLOCK_SIZE)) : 0);
 		end = end - (end % MIN_THP_BLOCK_SIZE);
 
 		if (start < end) {
-			printf ("\tMadvise HugePage: %p -> %p, size: %lu\n", (void*)start, (void*)end, end - start);
+//			printf ("\tMadvise HugePage: %p -> %p, size: %lu\n", (void*)start, (void*)end, end - start);
 			if (0 != madvise((void *)start, end - start, MADV_HUGEPAGE)) {
 				return OMRPORT_ERROR_VMEM_OPFAILED;
 			}

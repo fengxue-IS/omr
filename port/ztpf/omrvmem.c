@@ -1526,7 +1526,7 @@ getMemoryInRangeForLargePages(struct OMRPortLibrary *portLibrary,
 	if (0 != (vmemOptions & OMRPORT_VMEM_ALLOC_DIR_TOP_DOWN)) {
 		direction = -1;
 		currentAddress = endAddress;
-	} else if (0 != (vmemOptions & OMRPORT_VMEM_ALLOC_DIR_BOTTOM_UP)) {
+	} else if (0 != (vmemOptions & )) {
 		if (startAddress == NULL) {
 			currentAddress += direction * alignmentInBytes;
 		}
